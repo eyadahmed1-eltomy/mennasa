@@ -46,7 +46,7 @@ router.get('/', async (req, res) => {
         id: post.id,
         user: { id: post.user_id, name: post.user_name, avatar: post.user_avatar },
         content: post.content,
-        image: post.image ? \`http://localhost:5000/uploads/\${path.basename(post.image)}\` : null,
+        image: post.image ? `http://localhost:5000/uploads/${path.basename(post.image)}` : null,
         likes: post.likes,
         comments: comments.length,
         shares: 0,

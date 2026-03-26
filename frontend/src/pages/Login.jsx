@@ -8,10 +8,17 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    login(email, password);
-    navigate('/');
+    setError('');
+    try {
+      await login(email, password);
+      navigate('/');
+    } catch (err) {
+      setError(err.message || 'Failed to login');
+    }
   };
 
   return (
@@ -37,6 +44,7 @@ export default function Login() {
 
         <form className="auth-form glass-card" onSubmit={handleSubmit}>
           <h2>Welcome Back</h2>
+          {error && <div style={{ color: '#ff6b6b', background: 'rgba(255,107,107,0.1)', padding: '10px', borderRadius: '4px', marginBottom: '16px', fontSize: '0.9rem', textAlign: 'center' }}>{error}</div>}
           <div className="form-group">
             <input
               type="email"

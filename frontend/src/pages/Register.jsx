@@ -9,10 +9,17 @@ export default function Register() {
 
   const update = (key, val) => setForm({ ...form, [key]: val });
 
-  const handleSubmit = (e) => {
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    register({ name: `${form.firstName} ${form.lastName}`, email: form.email });
-    navigate('/');
+    setError('');
+    try {
+      await register({ name: `${form.firstName} ${form.lastName}`, email: form.email, password: form.password });
+      navigate('/');
+    } catch (err) {
+      setError(err.message || 'Failed to register');
+    }
   };
 
   return (
@@ -33,6 +40,7 @@ export default function Register() {
         <form className="auth-form glass-card" onSubmit={handleSubmit} style={{ width: '440px' }}>
           <h2>Create Your Account</h2>
           <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>It's quick and easy.</p>
+          {error && <div style={{ color: '#ff6b6b', background: 'rgba(255,107,107,0.1)', padding: '10px', borderRadius: '4px', marginBottom: '16px', fontSize: '0.9rem', textAlign: 'center' }}>{error}</div>}
 
           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
             <input placeholder="First name" value={form.firstName} onChange={(e) => update('firstName', e.target.value)} required id="reg-first" />

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { stories, posts as initialPosts } from '../data/mockData';
+import { stories } from '../data/mockData'; // Stories aren't fully integrated yet, hold mock
 
 function Stories() {
   return (
@@ -22,10 +22,40 @@ function Stories() {
   );
 }
 
-function CreatePost() {
+function CreatePost({ refreshPosts }) {
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [postText, setPostText] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  const handlePost = async () => {
+    if (!postText.trim() && !selectedImage) return;
+
+    const formData = new FormData();
+    formData.append('content', postText);
+    if (selectedImage) {
+      formData.append('image', selectedImage);
+    }
+
+    try {
+      const res = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('velora_token')}`
+        },
+        body: formData
+      });
+
+      if (res.ok) {
+        setPostText('');
+        setSelectedImage(null);
+        setShowModal(false);
+        refreshPosts(); // Reload feed from backend
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <>
@@ -38,7 +68,7 @@ function CreatePost() {
         </div>
         <div className="create-post-actions">
           <button className="create-post-action">🎥 Live Video</button>
-          <button className="create-post-action">🖼️ Photo/Video</button>
+          <button className="create-post-action" onClick={() => setShowModal(true)}>🖼️ Photo/Video</button>
           <button className="create-post-action">😊 Feeling/Activity</button>
         </div>
       </div>
@@ -50,6 +80,7 @@ function CreatePost() {
               <h2>Create Post</h2>
               <button className="btn-icon" onClick={() => setShowModal(false)}>✕</button>
             </div>
+            
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
               <img src={user?.avatar} alt="" className="avatar avatar-md" />
               <div>
@@ -59,24 +90,44 @@ function CreatePost() {
                 </button>
               </div>
             </div>
+
             <textarea
               placeholder={`What's on your mind, ${user?.name?.split(' ')[0]}?`}
               value={postText}
               onChange={(e) => setPostText(e.target.value)}
-              style={{ width: '100%', minHeight: '150px', resize: 'none', background: 'transparent', border: 'none', fontSize: '1.1rem', color: 'var(--text-primary)' }}
+              style={{ width: '100%', minHeight: '100px', resize: 'none', background: 'transparent', border: 'none', fontSize: '1.1rem', color: 'var(--text-primary)' }}
               autoFocus
             />
+
+            {selectedImage && (
+              <div style={{ position: 'relative', marginBottom: '16px' }}>
+                <img src={URL.createObjectURL(selectedImage)} alt="Preview" style={{ width: '100%', borderRadius: 'var(--radius-sm)', maxHeight: '300px', objectFit: 'cover' }} />
+                <button 
+                  className="btn-icon" 
+                  style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.6)' }}
+                  onClick={() => setSelectedImage(null)}
+                >✕</button>
+              </div>
+            )}
+
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', marginBottom: '16px' }}>
               <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>Add to your post</span>
               <div style={{ display: 'flex', gap: '12px', fontSize: '1.3rem' }}>
-                <span style={{ cursor: 'pointer' }} title="Photo/Video">🖼️</span>
+                <label style={{ cursor: 'pointer' }} title="Photo/Video">
+                  🖼️
+                  <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => setSelectedImage(e.target.files[0])} />
+                </label>
                 <span style={{ cursor: 'pointer' }} title="Tag People">👤</span>
                 <span style={{ cursor: 'pointer' }} title="Feeling">😊</span>
                 <span style={{ cursor: 'pointer' }} title="Check in">📍</span>
                 <span style={{ cursor: 'pointer' }} title="GIF">🎞️</span>
               </div>
             </div>
-            <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => setShowModal(false)}>Post</button>
+            
+            <button className="btn btn-primary" style={{ width: '100%' }} onClick={handlePost} 
+                    disabled={!postText.trim() && !selectedImage}>
+              Post
+            </button>
           </div>
         </div>
       )}
@@ -91,9 +142,21 @@ function Post({ post }) {
   const [commentText, setCommentText] = useState('');
   const { user } = useAuth();
 
-  const toggleLike = () => {
+  const toggleLike = async () => {
     setLiked(!liked);
     setLikes(liked ? likes - 1 : likes + 1);
+
+    // Call API async (optimistic UI update happened above)
+    try {
+      await fetch(`/api/posts/${post.id}/like`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('velora_token')}` }
+      });
+    } catch {
+      // Revert on error
+      setLiked(liked);
+      setLikes(likes);
+    }
   };
 
   return (
@@ -103,36 +166,31 @@ function Post({ post }) {
         <div className="post-user-info">
           <div className="post-username">{post.user.name}</div>
           <div className="post-meta">
-            <span>{post.time}</span> · <span>🌐</span>
+            <span>{new Date(post.time).toLocaleTimeString()}</span> · <span>🌐</span>
           </div>
         </div>
         <button className="btn-icon" style={{ width: 32, height: 32 }}>⋯</button>
       </div>
 
-      <div className="post-content">{post.content}</div>
-
+      {post.content && <div className="post-content">{post.content}</div>}
       {post.image && <img src={post.image} alt="" className="post-image" />}
 
       <div className="post-stats">
         <span>💜 {likes.toLocaleString()}</span>
-        <span>
-          {post.comments} comments · {post.shares} shares
-        </span>
+        <span>{post.commentsList?.length || 0} comments · 0 shares</span>
       </div>
 
       <div className="post-actions">
         <button className={`post-action-btn ${liked ? 'liked' : ''}`} onClick={toggleLike}>
           {liked ? '💜' : '🤍'} Like
         </button>
-        <button className="post-action-btn" onClick={() => setShowComments(!showComments)}>
-          💬 Comment
-        </button>
+        <button className="post-action-btn" onClick={() => setShowComments(!showComments)}>💬 Comment</button>
         <button className="post-action-btn">↗️ Share</button>
       </div>
 
       {showComments && (
         <div className="comments-section">
-          {post.commentsList.map((c) => (
+          {post.commentsList?.map((c) => (
             <div key={c.id} className="comment">
               <img src={c.user.avatar} alt="" className="avatar avatar-sm" />
               <div>
@@ -143,7 +201,7 @@ function Post({ post }) {
                 <div className="comment-actions">
                   <span>Like</span>
                   <span>Reply</span>
-                  <span>{c.time}</span>
+                  <span>{new Date(c.time).toLocaleTimeString()}</span>
                 </div>
               </div>
             </div>
@@ -163,11 +221,27 @@ function Post({ post }) {
 }
 
 export default function Home() {
+  const [posts, setPosts] = useState([]);
+
+  const fetchPosts = async () => {
+    try {
+      const res = await fetch('/api/posts');
+      const data = await res.json();
+      setPosts(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
   return (
     <div>
       <Stories />
-      <CreatePost />
-      {initialPosts.map((post) => (
+      <CreatePost refreshPosts={fetchPosts} />
+      {posts.map((post) => (
         <Post key={post.id} post={post} />
       ))}
     </div>

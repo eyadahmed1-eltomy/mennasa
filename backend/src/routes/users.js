@@ -17,12 +17,30 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+// Search Users
+router.get('/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) return res.json([]);
+    const users = await query(
+      'SELECT id, name, avatar, bio FROM users WHERE name LIKE ? LIMIT 10',
+      [`%${q}%`]
+    );
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get a user profile by ID
 router.get('/:id', async (req, res) => {
   try {
-    const users = await query('SELECT id, name, avatar, cover, bio, created_at FROM users WHERE id = ?', [req.params.id]);
+    const users = await query('SELECT * FROM users WHERE id = ?', [req.params.id]);
     if (users.length === 0) return res.status(404).json({ error: 'User not found' });
     
+    // Remove password
+    const { password, ...userData } = users[0];
+
     // Get their posts
     const posts = await query(`
       SELECT p.*, u.name as user_name, u.avatar as user_avatar 
@@ -43,7 +61,7 @@ router.get('/:id', async (req, res) => {
     }));
 
     res.json({
-      user: users[0],
+      user: userData,
       posts: structuredPosts
     });
   } catch (error) {
@@ -54,12 +72,28 @@ router.get('/:id', async (req, res) => {
 // Update Profile
 router.put('/', verifyToken, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), async (req, res) => {
   try {
-    const { bio, name } = req.body;
+    const { 
+      bio, name, workplace, college, high_school, 
+      current_city, hometown, relationship, 
+      phone, website, gender, birth_date 
+    } = req.body;
+
     let sql = 'UPDATE users SET ';
     const params = [];
 
-    if (name) { sql += 'name = ?, '; params.push(name); }
-    if (bio) { sql += 'bio = ?, '; params.push(bio); }
+    const fields = { 
+      name, bio, workplace, college, high_school, 
+      current_city, hometown, relationship, 
+      phone, website, gender, birth_date 
+    };
+
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== undefined) {
+        sql += `${key} = ?, `;
+        params.push(value);
+      }
+    }
+
     if (req.files['avatar']) { 
       sql += 'avatar = ?, '; 
       params.push(`http://localhost:5000/uploads/${path.basename(req.files['avatar'][0].path)}`); 
@@ -69,6 +103,9 @@ router.put('/', verifyToken, upload.fields([{ name: 'avatar', maxCount: 1 }, { n
       params.push(`http://localhost:5000/uploads/${path.basename(req.files['cover'][0].path)}`); 
     }
 
+    // Check if anything was updated
+    if (params.length === 0) return res.json({ success: true, message: 'No changes detected' });
+
     // Remove trailing comma and space
     sql = sql.slice(0, -2);
     sql += ' WHERE id = ?';
@@ -77,8 +114,9 @@ router.put('/', verifyToken, upload.fields([{ name: 'avatar', maxCount: 1 }, { n
     await run(sql, params);
     
     // Fetch updated
-    const users = await query('SELECT id, name, email, avatar, cover, bio FROM users WHERE id = ?', [req.userId]);
-    res.json({ success: true, user: users[0] });
+    const users = await query('SELECT * FROM users WHERE id = ?', [req.userId]);
+    const { password, ...updatedUser } = users[0];
+    res.json({ success: true, user: updatedUser });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

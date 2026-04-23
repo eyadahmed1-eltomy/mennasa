@@ -183,7 +183,7 @@ export default function Messages() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-64px)] max-w-7xl mx-auto border-x border-white/5 bg-(--bg-primary) overflow-hidden text-left">
+    <div className="flex h-[calc(100vh-64px)] max-w-7xl mx-auto border-x border-white/5 bg-[#0a0e27] overflow-hidden text-left">
       {/* Conversations Sidebar */}
       <div className="w-full md:w-[360px] flex flex-col border-r border-white/5 bg-black/20">
         <div className="p-4 flex items-center justify-between">

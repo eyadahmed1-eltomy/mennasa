@@ -15,7 +15,7 @@ function StoryCarousel({ stories, loading }) {
           <div key={userStory.user_id} className="min-w-[110px] h-[190px] rounded-xl overflow-hidden relative cursor-pointer group snap-start border border-white/5 hover:border-white/20 transition-all">
             <img src={userStory.stories[0].media_url.startsWith('http') ? userStory.stories[0].media_url : `http://localhost:5000/uploads/${userStory.stories[0].media_url.split('/').pop()}`} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
             <div className="absolute top-2.5 left-2.5 z-10">
-               <div className="w-9 h-9 rounded-full border-2 border-purple-500 p-0.5 bg-(--bg-primary)">
+               <div className="w-9 h-9 rounded-full border-2 border-purple-500 p-0.5 bg-[#0a0e27]">
                  <img src={userStory.user_avatar} alt="" className="w-full h-full rounded-full object-cover" />
                </div>
             </div>

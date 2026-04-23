@@ -41,7 +41,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-(--bg-primary) flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center p-6 relative overflow-hidden">
       {/* Background Orbs */}
       <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none animate-pulse duration-700" />

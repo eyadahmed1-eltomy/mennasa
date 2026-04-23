@@ -70,7 +70,7 @@ export default function Notifications() {
           >
             <div className="relative">
               <img src={n.actor_avatar} alt="" className="w-14 h-14 rounded-full object-cover border border-white/10 shadow-lg" />
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-[10px] border-2 border-(--bg-primary)">
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-[10px] border-2 border-[#0a0e27]">
                 {n.type === 'like' ? '💜' : n.type === 'comment' ? '💬' : '👤'}
               </div>
             </div>

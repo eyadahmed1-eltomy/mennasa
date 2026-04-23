@@ -19,6 +19,7 @@ const notificationRoutes = require('./routes/notifications');
 const reelRoutes = require('./routes/reels');
 const followRoutes = require('./routes/follows');
 const storyRoutes = require('./routes/stories');
+const friendsRoutes = require('./routes/friends');
 
 const app = express();
 const server = http.createServer(app);
@@ -42,6 +43,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/reels', reelRoutes);
 app.use('/api/follows', followRoutes);
 app.use('/api/stories', storyRoutes);
+app.use('/api/friends', friendsRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', name: 'Velora API', timestamp: new Date().toISOString() });

@@ -113,4 +113,56 @@ router.get('/me', verifyToken, asyncHandler(async (req, res) => {
   }
 }));
 
+// Google Auth - receives Firebase user info and creates/finds local user
+router.post('/google', asyncHandler(async (req, res) => {
+  try {
+    const { email, name, photoURL, uid } = req.body;
+
+    if (!email || !uid) {
+      return res.status(400).json({ error: 'Missing required Google auth data' });
+    }
+
+    // Check if user already exists
+    const existing = await query(`SELECT * FROM users WHERE email = ?`, [email]);
+
+    let user;
+    if (existing.length > 0) {
+      user = existing[0];
+    } else {
+      // Create new user from Google data
+      const avatar = photoURL || `https://api.dicebear.com/7.x/notionists/svg?seed=${(name || 'user').replace(/\s+/g, '')}`;
+      const displayName = name || email.split('@')[0];
+      
+      // Generate a random password hash for Google users (they won't use password login)
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(`google_${uid}_${Date.now()}`, salt);
+
+      const result = await run(
+        `INSERT INTO users (name, email, password, avatar) VALUES (?, ?, ?, ?)`,
+        [displayName, email, hashedPassword, avatar]
+      );
+
+      user = { id: result.id, name: displayName, email, avatar };
+    }
+
+    // Create JWT
+    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+
+    return res.status(200).json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        cover: user.cover || null,
+        bio: user.bio || null
+      }
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    return res.status(500).json({ error: 'Google authentication failed. Please try again.' });
+  }
+}));
+
 module.exports = router;

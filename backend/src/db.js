@@ -47,6 +47,42 @@ const db = new sqlite3.Database(dbPath, (err) => {
       db.run(`CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER NOT NULL, user_id INTEGER NOT NULL, content TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (post_id) REFERENCES posts (id), FOREIGN KEY (user_id) REFERENCES users (id))`);
       db.run(`CREATE TABLE IF NOT EXISTS follows (id INTEGER PRIMARY KEY AUTOINCREMENT, follower_id INTEGER NOT NULL, following_id INTEGER NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(follower_id, following_id), FOREIGN KEY (follower_id) REFERENCES users (id), FOREIGN KEY (following_id) REFERENCES users (id))`);
       
+      // Friends System
+      db.run(`CREATE TABLE IF NOT EXISTS friends (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user1_id INTEGER NOT NULL,
+        user2_id INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user1_id, user2_id),
+        FOREIGN KEY (user1_id) REFERENCES users (id),
+        FOREIGN KEY (user2_id) REFERENCES users (id)
+      )`);
+
+      // Friend Requests System
+      db.run(`CREATE TABLE IF NOT EXISTS friend_requests (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sender_id INTEGER NOT NULL,
+        receiver_id INTEGER NOT NULL,
+        status TEXT DEFAULT 'pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(sender_id, receiver_id),
+        FOREIGN KEY (sender_id) REFERENCES users (id),
+        FOREIGN KEY (receiver_id) REFERENCES users (id)
+      )`);
+
+      // Non-friend Message Tracking
+      db.run(`CREATE TABLE IF NOT EXISTS message_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sender_id INTEGER NOT NULL,
+        receiver_id INTEGER NOT NULL,
+        message_count INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(sender_id, receiver_id),
+        FOREIGN KEY (sender_id) REFERENCES users (id),
+        FOREIGN KEY (receiver_id) REFERENCES users (id)
+      )`);
+      
       // Stories Table
       db.run(`CREATE TABLE IF NOT EXISTS stories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

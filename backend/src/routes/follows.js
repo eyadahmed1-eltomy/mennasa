@@ -27,4 +27,15 @@ router.post('/:id', verifyToken, async (req, res) => {
   }
 });
 
+// Check follow status
+router.get('/status/:id', verifyToken, async (req, res) => {
+  try {
+    const targetId = req.params.id;
+    const following = await query('SELECT * FROM follows WHERE follower_id = ? AND following_id = ?', [req.userId, targetId]);
+    res.json({ following: following.length > 0 });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

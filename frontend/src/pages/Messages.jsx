@@ -227,7 +227,7 @@ export default function Messages() {
             >
               <div className="relative">
                 <img src={c.other_avatar} alt="" className="w-14 h-14 rounded-full object-cover border border-white/10 group-hover:scale-105 transition-transform" />
-                <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-[#0a0e27]" />
+                <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-(--bg-primary)" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start">
@@ -250,7 +250,7 @@ export default function Messages() {
             <div className="p-4 border-b border-white/5 flex items-center gap-3 glass-card sticky top-0 z-10">
               <div className="relative">
                 <img src={activeConvo.other_avatar} alt="" className="w-10 h-10 rounded-full object-cover border border-white/5 shadow-lg shadow-black/20 cursor-pointer hover:opacity-80" onClick={() => navigate(`/profile/${activeConvo.other_id}`)} />
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border border-[#0a0e27]" />
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border border-(--bg-primary)" />
               </div>
               <div className="flex-1">
                 <div className="font-bold text-white leading-tight uppercase tracking-tight text-[0.9rem] hover:underline cursor-pointer" onClick={() => navigate(`/profile/${activeConvo.other_id}`)}>{activeConvo.other_name}</div>

@@ -23,7 +23,7 @@ export default function RightSidebar() {
           <button key={u.id} className="flex items-center w-full p-2.5 rounded-lg hover:bg-white/5 transition-all group">
             <div className="relative">
               <img src={u.avatar} alt={u.name} className="w-9 h-9 rounded-full object-cover mr-3 border border-white/10" />
-              <div className="absolute bottom-0 right-3 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0a0e27]" />
+              <div className="absolute bottom-0 right-3 w-3 h-3 bg-green-500 rounded-full border-2 border-(--bg-primary)" />
             </div>
             <span className="text-[0.95rem] font-medium text-gray-300 group-hover:text-white transition-colors">{u.name}</span>
           </button>

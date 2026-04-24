@@ -5,7 +5,7 @@ async function testFriendsAPI() {
   // Test 1: Health check
   console.log('1️⃣ Testing health endpoint...');
   try {
-    const healthRes = await fetch('https://vel0ra.vercel.app/api/health');
+    const healthRes = await fetch('http://localhost:5000/api/health');
     console.log('✅ Backend is running:', healthRes.status);
   } catch (e) {
     console.error('❌ Backend not responding:', e.message);

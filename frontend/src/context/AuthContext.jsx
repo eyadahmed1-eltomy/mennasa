@@ -87,41 +87,24 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = async () => {
     try {
-      // Open Google sign-in popup via Firebase
+      // Use Firebase Authentication directly
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;
 
-      // Send Firebase user info to our backend to create/find local user
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: firebaseUser.email,
-          name: firebaseUser.displayName,
-          photoURL: firebaseUser.photoURL,
-          uid: firebaseUser.uid,
-        }),
+      // Get Firebase ID token
+      const idToken = await firebaseUser.getIdToken();
+
+      // Set user and authentication state with Firebase credentials
+      setUser({
+        id: firebaseUser.uid,
+        email: firebaseUser.email,
+        name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+        avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/notionists/svg?seed=${firebaseUser.displayName || 'user'}`,
       });
 
-      if (!res.ok) {
-        let errorMessage = 'Google login failed';
-        try {
-          const errorData = await res.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          console.error('Failed to parse error response:', e);
-        }
-        throw new Error(errorMessage);
-      }
-
-      const data = await res.json();
-      if (!data.token || !data.user) {
-        throw new Error('Invalid response structure from server');
-      }
-
-      localStorage.setItem('velora_token', data.token);
+      // Store Firebase token instead of JWT
+      localStorage.setItem('velora_token', idToken);
       localStorage.setItem('velora_persist_login', 'true');
-      setUser(data.user);
       setIsAuthenticated(true);
       return true;
     } catch (error) {
